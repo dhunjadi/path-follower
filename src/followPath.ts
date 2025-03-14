@@ -1,33 +1,83 @@
-import { MapType } from "./types";
+import { END_CHARACTER, START_CHARACTER } from "./constants";
+import { Direction, MapType } from "./types";
 import { findStartingAndEndingPositions } from "./utils";
 
 export function followPath(map: MapType) {
   const positions = findStartingAndEndingPositions(map);
 
-  const { rowIndex, columnIndex } = positions.startPosition;
-  const adjacentPositions: { rowIndex: number; columnIndex: number }[] = [];
+  let currentPosition = positions.startPosition;
+  let path = START_CHARACTER;
+  let collectedLetters = "";
+  let visited = new Set<string>();
 
-  const directions = [
-    { rowOffset: -1, colOffset: 0 }, // Up
-    { rowOffset: 1, colOffset: 0 }, // Down
-    { rowOffset: 0, colOffset: -1 }, // Left
-    { rowOffset: 0, colOffset: 1 }, // Right
+  const directions: Direction[] = [
+    { row: -1, column: 0 }, // Up
+    { row: 1, column: 0 }, // Down
+    { row: 0, column: -1 }, // Left
+    { row: 0, column: 1 }, // Right
   ];
 
-  for (const { rowOffset, colOffset } of directions) {
-    const newRow = rowIndex + rowOffset;
-    const newCol = columnIndex + colOffset;
+  let lastDirection: Direction | null = null;
 
-    if (
-      newRow >= 0 &&
-      newRow < map.length &&
-      newCol >= 0 &&
-      newCol < map[newRow].length &&
-      map[newRow][newCol] !== " "
-    ) {
-      adjacentPositions.push({ rowIndex: newRow, columnIndex: newCol });
+  while (true) {
+    visited.add(`${currentPosition.rowIndex},${currentPosition.columnIndex}`);
+    let moved = false;
+
+    // Prioritize moving in the direction we came from (lastDirection)
+    let currentDirections: Direction[] = lastDirection
+      ? [lastDirection, ...directions]
+      : directions;
+
+    for (let { row, column } of currentDirections) {
+      let newRow = currentPosition.rowIndex + row;
+      let newCol = currentPosition.columnIndex + column;
+
+      // Skipping visited positions
+      while (visited.has(`${newRow},${newCol}`)) {
+        newRow += row;
+        newCol += column;
+
+        // Stop if we are not in bounds
+        if (
+          newRow < 0 ||
+          newRow >= map.length ||
+          newCol < 0 ||
+          newCol >= map[newRow].length
+        ) {
+          break;
+        }
+      }
+
+      // Check if we are in bounds and have not visited the position
+      if (
+        newRow >= 0 &&
+        newRow < map.length &&
+        newCol >= 0 &&
+        newCol < map[newRow].length &&
+        !visited.has(`${newRow},${newCol}`)
+      ) {
+        let nextChar = map[newRow][newCol];
+
+        if (nextChar !== " ") {
+          path += nextChar;
+
+          // Collect Capital letters
+          if (/[A-Z]/.test(nextChar)) {
+            collectedLetters += nextChar;
+          }
+
+          if (nextChar === END_CHARACTER) return { collectedLetters, path };
+
+          // Update current position and last direction
+          currentPosition = { rowIndex: newRow, columnIndex: newCol };
+          lastDirection = { row: row, column: column };
+
+          moved = true;
+          break;
+        }
+      }
     }
-  }
 
-  return adjacentPositions;
+    if (!moved) throw new Error("No valid path found");
+  }
 }

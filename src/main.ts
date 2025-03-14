@@ -1,9 +1,15 @@
 import "./style.css";
 import { followPath } from "./followPath.ts";
-import { multipleEnds } from "./data/invalidMaps.ts";
+import {
+  basicMap,
+  intersectionMap,
+  lettersOnTurnsMap,
+} from "./data/validMaps.ts";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 Open dev console
 `;
 
-followPath(multipleEnds);
+console.log("basicMap: ", followPath(basicMap));
+console.log("intersectionMap: ", followPath(intersectionMap));
+console.log("lettersOnTurnsMap: ", followPath(lettersOnTurnsMap));
