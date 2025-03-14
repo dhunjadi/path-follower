@@ -1,11 +1,20 @@
 import { END_CHARACTER, START_CHARACTER } from "./constants";
 import { Direction, MapType } from "./types";
-import { findStartingAndEndingPositions } from "./utils";
+import { findEndingPosition, findStartingPosition } from "./utils";
 
 export function followPath(map: MapType) {
-  const positions = findStartingAndEndingPositions(map);
+  const startPosition = findStartingPosition(map);
+  const endPosition = findEndingPosition(map);
 
-  let currentPosition = positions.startPosition;
+  if (!startPosition) {
+    throw new Error("Start position '@' not found");
+  }
+
+  if (!endPosition) {
+    throw new Error("End position 'x' not found");
+  }
+
+  let currentPosition = startPosition;
   let path = START_CHARACTER;
   let collectedLetters = "";
   let visited = new Set<string>();
